@@ -4,16 +4,25 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Use a single connection string
-const uri = process.env.MONGODB_URI || "mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI || "mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/<dbname>?retryWrites=true&w=majority&tls=true&tlsInsecure=true&tlsAllowInvalidCertificates=true";
 const client = new MongoClient(uri);
 
 async function connectToDatabase() {
   try {
     await client.connect();
+    await client.db("genshin_accounts").command({ ping: 1 });
     console.log("Connected successfully to MongoDB");
+    const database = client.db("genshin_accounts");
+    const accounts = database.collection("accounts");
+    const count = await accounts.countDocuments();
+    console.log(`Total documents in accounts collection: ${count}`);
+    const featuredCount = await accounts.countDocuments({ "characters": { $elemMatch: { "rarity": 5 } } });
+    console.log(`Featured accounts: ${featuredCount}`);
   } catch (e) {
     console.error("Failed to connect to MongoDB", e);
+    console.error("Connection string:", uri.replace(/<password>/, '****'));
+    console.error("Node version:", process.version);
+    console.error("MongoDB driver version:", require('mongodb/package.json').version);
     process.exit(1);
   }
 }
@@ -21,80 +30,45 @@ async function connectToDatabase() {
 connectToDatabase();
 
 app.use(express.json());
-app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
+
+app.use(cors({origin: process.env.ALLOWED_ORIGIN || '*'}));
 
 app.get('/genshin-accounts/accounts', async (req, res) => {
   try {
-    const server = req.query.server;
-    let dbName;
-
-    switch (server) {
-      case 'EU':
-        dbName = "eu_accounts";
-        break;
-      case 'NA':
-        dbName = "na_accounts";
-        break;
-      case 'SEA':
-        dbName = "sea_accounts";
-        break;
-      default:
-        dbName = "genshin_accounts"; // For featured accounts
-    }
-
-    const database = client.db(dbName);
+    console.log("Attempting to fetch featured accounts");
+    const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
+    console.log("Connected to database and collection");
     
-    let query = {};
-    if (server) {
-      query.server = server;
-    } else {
-      query.featured = true;
+    // Find accounts with at least one 5-star character
+    const featuredAccounts = await accounts.find({
+      "characters": { $elemMatch: { "rarity": 5 } }
+    }).toArray();
+    
+    console.log("Featured Accounts:", JSON.stringify(featuredAccounts, null, 2));
+    if (featuredAccounts.length === 0) {
+      console.log("No featured accounts found");
     }
-
-    const fetchedAccounts = await accounts.find(query).toArray();
-    
-    res.json(fetchedAccounts);
+    res.json(featuredAccounts);
   } catch (e) {
-    console.error("Error fetching accounts:", e);
+    console.error("Error fetching featured accounts:", e);
     res.status(500).json({ error: e.message, stack: e.stack });
   }
 });
 
 app.post('/insert-test-data', async (req, res) => {
   try {
-    const server = req.body.server;
-    let dbName;
-
-    switch (server) {
-      case 'EU':
-        dbName = "eu_accounts";
-        break;
-      case 'NA':
-        dbName = "na_accounts";
-        break;
-      case 'SEA':
-        dbName = "sea_accounts";
-        break;
-      default:
-        throw new Error("Invalid server specified");
-    }
-
-    const database = client.db(dbName);
+    const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
-    const testData = req.body.accounts;
+    const testData = [
+      // Copy the contents of your accounts.json file here
+    ];
     const result = await accounts.insertMany(testData);
-    res.json({ message: `${result.insertedCount} documents inserted into ${dbName}` });
+    res.json({ message: `${result.insertedCount} documents inserted` });
   } catch (e) {
     console.error("Error inserting test data:", e);
     res.status(500).json({ error: e.message });
   }
-});
-
-process.on('SIGINT', async () => {
-  await client.close();
-  console.log('MongoDB connection closed');
-  process.exit(0);
 });
 
 app.listen(port, () => {
