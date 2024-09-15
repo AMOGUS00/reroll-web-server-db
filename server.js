@@ -28,7 +28,7 @@ app.get('/api/genshin-accounts/accounts.json', async (req, res) => {
   try {
     const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
-    const featuredAccounts = await accounts.find({ featured: true }).toArray();
+    const featuredAccounts = await accounts.find({ "featured": true}).toArray();
     console.log("Featured accounts:", featuredAccounts);
     if (featuredAccounts.length === 0) {
       console.log("No featured accounts found");
