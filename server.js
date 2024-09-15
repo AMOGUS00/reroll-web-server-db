@@ -20,7 +20,7 @@ connectToDatabase();
 app.use(express.json());
 
 const cors = require('cors');
-app.use(cors({origin: 'https://your-website-domain.com'}));
+app.use(cors({origin: 'https://main--xinstore.netlify.app/'}));
 
 app.get('/api/featured-accounts', async (req, res) => {
   try {
