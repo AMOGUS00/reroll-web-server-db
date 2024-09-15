@@ -31,7 +31,7 @@ connectToDatabase();
 
 app.use(express.json());
 
-app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
+app.use(cors({origin: process.env.ALLOWED_ORIGIN || '*'}));
 
 app.get('/genshin-accounts/accounts', async (req, res) => {
   try {
