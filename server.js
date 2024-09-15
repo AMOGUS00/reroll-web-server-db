@@ -24,7 +24,7 @@ app.use(express.json());
 
 app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
 
-app.get('/api/genshin-accounts/accounts.json', async (req, res) => {
+app.get('/genshin-accounts/accounts.json', async (req, res) => {
   try {
     const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
