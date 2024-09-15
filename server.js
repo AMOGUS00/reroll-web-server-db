@@ -16,7 +16,7 @@ async function connectToDatabase() {
     const accounts = database.collection("accounts");
     const count = await accounts.countDocuments();
     console.log(`Total documents in accounts collection: ${count}`);
-    const featuredCount = await accounts.countDocuments({ featured: true });
+    const featuredCount = await accounts.countDocuments({ "characters": { $elemMatch: { "rarity": 5 } } });
     console.log(`Featured accounts: ${featuredCount}`);
   } catch (e) {
     console.error("Failed to connect to MongoDB", e);
@@ -53,6 +53,21 @@ app.get('/genshin-accounts/accounts', async (req, res) => {
   } catch (e) {
     console.error("Error fetching featured accounts:", e);
     res.status(500).json({ error: e.message, stack: e.stack });
+  }
+});
+
+app.post('/insert-test-data', async (req, res) => {
+  try {
+    const database = client.db("genshin_accounts");
+    const accounts = database.collection("accounts");
+    const testData = [
+      // Copy the contents of your accounts.json file here
+    ];
+    const result = await accounts.insertMany(testData);
+    res.json({ message: `${result.insertedCount} documents inserted` });
+  } catch (e) {
+    console.error("Error inserting test data:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
