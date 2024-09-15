@@ -10,7 +10,7 @@ const client = new MongoClient(uri);
 async function connectToDatabase() {
   try {
     await client.connect();
-    await client.db("admin").command({ ping: 1 });
+    await client.db("genshin_accounts").command({ ping: 1 });
     console.log("Connected successfully to MongoDB");
     const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
@@ -33,11 +33,11 @@ app.use(express.json());
 
 app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
 
-app.get('/genshin-accounts/accounts.json', async (req, res) => {
+app.get('/genshin-accounts/accounts', async (req, res) => {
   try {
     console.log("Attempting to fetch featured accounts");
     const database = client.db("genshin_accounts");
-    const accounts = database.collection("accounts.json");
+    const accounts = database.collection("accounts");
     console.log("Connected to database and collection");
     const featuredAccounts = await accounts.find({ featured: true }).toArray();
     console.log("Featured accounts:", JSON.stringify(featuredAccounts, null, 2));
