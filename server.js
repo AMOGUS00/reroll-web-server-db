@@ -1,9 +1,10 @@
- const express = require('express');
+const express = require('express');
 const { MongoClient } = require('mongodb');
+const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-const uri = "mongodb+srv://<username>:<password>@<cluster-url>/<dbname>?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI || "mongodb+srv://<username>:<password>@<cluster-url>/<dbname>?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
 
 async function connectToDatabase() {
@@ -19,8 +20,7 @@ connectToDatabase();
 
 app.use(express.json());
 
-const cors = require('cors');
-app.use(cors({origin: 'https://main--xinstore.netlify.app/'}));
+app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
 
 app.get('/api/featured-accounts', async (req, res) => {
   try {
@@ -34,5 +34,5 @@ app.get('/api/featured-accounts', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
