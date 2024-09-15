@@ -33,14 +33,19 @@ app.use(express.json());
 
 app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
 
-app.get('/genshin_accounts/accounts', async (req, res) => {
+app.get('/genshin-accounts/accounts', async (req, res) => {
   try {
     console.log("Attempting to fetch featured accounts");
     const database = client.db("genshin_accounts");
     const accounts = database.collection("accounts");
     console.log("Connected to database and collection");
-    const featuredAccounts = await accounts.find({ featured: true }).toArray();
-    console.log("Featured accounts:", JSON.stringify(featuredAccounts, null, 2));
+    
+    // Find accounts with at least one 5-star character
+    const featuredAccounts = await accounts.find({
+      "characters": { $elemMatch: { "rarity": 5 } }
+    }).toArray();
+    
+    console.log("Featured Accounts:", JSON.stringify(featuredAccounts, null, 2));
     if (featuredAccounts.length === 0) {
       console.log("No featured accounts found");
     }
