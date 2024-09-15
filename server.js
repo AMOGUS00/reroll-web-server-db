@@ -56,23 +56,6 @@ app.get('/genshin-accounts/accounts', async (req, res) => {
   }
 });
 
-app.get('/run-query', async (req, res) => {
-  try {
-    const database = client.db("genshin_accounts");
-    const accounts = database.collection("accounts");
-    
-    // This is where you put your query
-    const query = { "characters": { $elemMatch: { "rarity": 5 } } };
-    const result = await accounts.find(query).toArray();
-    
-    console.log("Query result:", JSON.stringify(result, null, 2));
-    res.json(result);
-  } catch (e) {
-    console.error("Error running query:", e);
-    res.status(500).json({ error: e.message, stack: e.stack });
-  }
-});
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
