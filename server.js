@@ -33,7 +33,7 @@ app.use(express.json());
 
 app.use(cors({origin: process.env.ALLOWED_ORIGIN || 'https://main--xinstore.netlify.app'}));
 
-app.get('/genshin-accounts/accounts', async (req, res) => {
+app.get('/genshin_accounts/accounts', async (req, res) => {
   try {
     console.log("Attempting to fetch featured accounts");
     const database = client.db("genshin_accounts");
